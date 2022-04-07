@@ -84,7 +84,7 @@ class FaceTrainer:
 
         # lets evaluate the success rate.
         cm = confusion_matrix(y_pred, y)
-        print(cm)
+        logger.info(cm)
         # save the model to disk
         pickle.dump(svc, open(model_name, 'wb'))
 
