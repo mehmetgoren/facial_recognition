@@ -10,24 +10,23 @@ from sklearn.linear_model import LogisticRegression
 import pickle
 
 from common.utilities import logger, config
+from core.utilities import create_dir_if_not_exist, get_train_dir_path
 
 
 class FaceTrainer:
     def __init__(self):
-        self.rootPath = config.ai.face_recog_folder
         self.facenet_pytorch = importlib.import_module('facenet-pytorch')
         self.workers = 4
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
+        self.mtcnn_threshold = config.ai.face_recog_mtcnn_threshold
         self.mtcnn = self.facenet_pytorch.MTCNN(post_process=True, device=self.device)
-        self.mtcnn.keep_all = True  # to detect all faces
+        self.mtcnn.keep_all = False  # to detect only one face on training
         self.resnet = self.facenet_pytorch.InceptionResnetV1(pretrained='vggface2').eval().to(self.device)
         self.resnet.classify = True
 
-        directory = os.path.join(self.rootPath, 'train')
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        self.folder_path = directory
+        self.folder_path = get_train_dir_path()
+        create_dir_if_not_exist(self.folder_path)
         self.dataset = datasets.ImageFolder(self.folder_path)
         self.dataset.idx_to_class = {i: c for c, i in self.dataset.class_to_idx.items()}
 
@@ -42,12 +41,12 @@ class FaceTrainer:
         for x, y in self.loader:
             x_aligned, prob = self.mtcnn(x, return_prob=True)
             if x_aligned is not None:
-                j = 0
-                for t in x_aligned:
-                    aligned.append(t)
-                    names.append(self.dataset.idx_to_class[y])
-                    logger.info(f'Face detected with probability: {prob[j]}')
-                    j += 1
+                if prob < self.mtcnn_threshold:
+                    logger.info(f'mtcnn (training) prob({prob}) is lower than the threshold({self.mtcnn_threshold})')
+                    continue
+                aligned.append(x_aligned)
+                names.append(self.dataset.idx_to_class[y])
+                logger.info(f'Face detected with probability: {prob}')
         aligned = torch.stack(aligned).to(self.device)
         embeddings = self.resnet(aligned).detach().cpu()
 
