@@ -62,7 +62,7 @@ class ReadServiceEventHandler(EventHandler):
         name = dic['name']
         source_id = dic['source']
         base64_image = dic['img']
-        video_clip_enabled = dic['video_clip_enabled']
+        ai_clip_enabled = dic['ai_clip_enabled']
 
         result = self.fr.predict(base64_image)
         if result is None:
@@ -85,7 +85,7 @@ class ReadServiceEventHandler(EventHandler):
             return
 
         dic = {'id': generate_id(), 'source_id': source_id, 'created_at': datetime_now(), 'detected_faces': detected_faces,
-               'base64_image': result.base64_image, 'video_clip_enabled': video_clip_enabled}
+               'base64_image': result.base64_image, 'ai_clip_enabled': ai_clip_enabled}
         event = json.dumps(dic)
         self.publisher.publish(event)
         logger.info(f'face: detected {json.dumps(face_logs)}')
