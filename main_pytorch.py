@@ -1,3 +1,5 @@
+import warnings
+
 from common.event_bus.event_bus import EventBus
 from common.utilities import logger
 from core.event_handlers import ReadServiceEventHandler
@@ -5,6 +7,7 @@ from core.utilities import register_detect_service
 
 
 def main():
+    warnings.filterwarnings('ignore')
     _ = register_detect_service('pytorch_detection_service', 'The PyTorch Facial Recognition Service®')
 
     handler = ReadServiceEventHandler()
