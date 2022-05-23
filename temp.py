@@ -20,7 +20,7 @@ train()
 def predict():
     test_dir_path = get_test_dir_path()
     base64_images = []
-    root = os.path.join(os.path.join(test_dir_path, 't'))
+    root = os.path.join(test_dir_path, 't')
     for image_file in os.listdir(root):
         image = Image.open(os.path.join(root, image_file))
         buffered = BytesIO()
