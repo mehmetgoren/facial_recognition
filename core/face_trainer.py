@@ -13,6 +13,10 @@ from common.utilities import logger, config
 from core.utilities import create_dir_if_not_exist, get_train_dir_path
 
 
+def _collate_fn(x):
+    return x[0]
+
+
 class FaceTrainer:
     def __init__(self):
         self.facenet_pytorch = importlib.import_module('facenet-pytorch')
@@ -30,10 +34,7 @@ class FaceTrainer:
         self.dataset = datasets.ImageFolder(self.folder_path)
         self.dataset.idx_to_class = {i: c for c, i in self.dataset.class_to_idx.items()}
 
-        def __collate_fn(x):
-            return x[0]
-
-        self.loader = DataLoader(self.dataset, collate_fn=__collate_fn, num_workers=self.workers)
+        self.loader = DataLoader(self.dataset, collate_fn=_collate_fn, num_workers=self.workers)
 
     def __prepare_pytorch_side(self):
         aligned = []

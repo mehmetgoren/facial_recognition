@@ -1,9 +1,9 @@
 import base64
 import os
 import uuid
+from enum import Enum
 from io import BytesIO
 from threading import Thread
-
 from PIL import Image
 
 from common.data.heartbeat_repository import HeartbeatRepository
@@ -51,3 +51,11 @@ def get_train_dir_path() -> str:
 
 def get_test_dir_path() -> str:
     return os.path.join(config.general.root_folder_path, 'fr', 'ml', 'test')
+
+
+class EventChannels(str, Enum):
+    read_service = 'read_service'
+    fr_train_request = 'fr_train_request'
+    fr_service = 'fr_service'
+    fr_train_response = 'fr_train_response'
+    frtc = 'frtc'

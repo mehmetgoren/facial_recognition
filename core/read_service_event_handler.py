@@ -1,46 +1,22 @@
 import json
-import os
-import re
 
 from common.event_bus.event_bus import EventBus
 from common.event_bus.event_handler import EventHandler
 from common.utilities import logger, datetime_now, config
 from core.face_recognizer import FaceRecognizer
-from core.face_trainer import FaceTrainer
-from core.utilities import create_dir_if_not_exist, base64_to_pil, generate_id, start_thread, get_train_dir_path
+from core.utilities import generate_id, start_thread, EventChannels
 
 
-class TrainEventHandler(EventHandler):
-    def __init__(self):
-        self.train_rootPath = get_train_dir_path()
-        if not os.path.exists(self.train_rootPath):
-            os.makedirs(self.train_rootPath)
-        self.encoding = 'utf-8'
-        self.trainer = FaceTrainer()
-        self.event_bus = EventBus('fr_train_complete')
+class FrTrainCompleteEventHandler(EventHandler):
+    def __init__(self, fr: FaceRecognizer):
+        self.fr = fr
 
     def handle(self, dic: dict):
         if dic is None or dic['type'] != 'message':
             return
 
-        start_thread(self.__handle, [dic])
-
-    def __handle(self, dic: dict):
-        data: bytes = dic['data']
-        dic = json.loads(data.decode(self.encoding))
-        op_id = dic['id']
-        name = re.sub(r'[\\/*?:"<>|]', '', dic['name'])
-        img_str = dic['img']
-
-        directory = os.path.join(self.train_rootPath, name)
-        create_dir_if_not_exist(directory)
-
-        pil_img = base64_to_pil(img_str)
-        img_file_name = f'{name}_{generate_id()}'
-        pil_img.save(os.path.join(directory, f'{img_file_name}.jpg'))
-        self.trainer.fit()
-        event = json.dumps({'id': op_id})
-        self.event_bus.publish(event)
+        self.fr.reload_sklearn()
+        logger.info('face training logistic regression data has been reloaded')
 
 
 class ReadServiceEventHandler(EventHandler):
@@ -48,7 +24,15 @@ class ReadServiceEventHandler(EventHandler):
         self.prob_threshold: float = config.ai.face_recog_prob_threshold
         self.encoding = 'utf-8'
         self.fr = FaceRecognizer()
-        self.publisher = EventBus('fr_service')
+        self.publisher = EventBus(EventChannels.fr_service)
+
+    def start_listen_train_complete_event(self):
+        start_thread(self._listen_train_complete, args=[])
+
+    def _listen_train_complete(self):
+        eb = EventBus(EventChannels.frtc)
+        eh = FrTrainCompleteEventHandler(self.fr)
+        eb.subscribe_async(eh)
 
     def handle(self, dic: dict):
         if dic is None or dic['type'] != 'message':

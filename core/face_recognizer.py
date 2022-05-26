@@ -42,6 +42,10 @@ class FaceRecognizer:
         self.resnet = self.facenet_pytorch.InceptionResnetV1(pretrained='vggface2').eval().to(self.device)
         self.resnet.classify = True
 
+        self.svc = pickle.load(open('face_train_classifier_model.h5', 'rb'))
+        self.svc.probability = True
+        self.class_names = pickle.load(open('class_names.h5', 'rb'))
+
     def __prepare_pytorch_side(self, base64_img: str):
         aligned = []
         faces: List[FaceCoor] = []
@@ -76,17 +80,12 @@ class FaceRecognizer:
         return x, faces, embeddings.detach().cpu()
 
     def __prepare_sklearn_side(self, face_images: List[FaceCoor], embeddings) -> List[DetectedFace]:
-        svc = pickle.load(open('face_train_classifier_model.h5', 'rb'))
-        svc.probability = True
-        y_pred = svc.predict(embeddings)
-
-        probas_all = svc.predict_proba(embeddings)
-
-        class_names = pickle.load(open('class_names.h5', 'rb'))
+        y_pred = self.svc.predict(embeddings)
+        probas_all = self.svc.predict_proba(embeddings)
         faces: List[DetectedFace] = []
         for index, p in enumerate(y_pred):
             prob = probas_all[index, p]
-            class_name = class_names[p] if prob >= self.prob_threshold else 'unknown'
+            class_name = self.class_names[p] if prob >= self.prob_threshold else 'unknown'
             fc: FaceCoor = face_images[index]
             df = DetectedFace()
             df.pred_score, df.pred_cls_idx, df.pred_cls_name = prob, p, class_name
@@ -114,3 +113,7 @@ class FaceRecognizer:
         else:
             dfi.base64_image = base64_img
         return dfi
+
+    def reload_sklearn(self):
+        self.svc = pickle.load(open('face_train_classifier_model.h5', 'rb'))
+        self.class_names = pickle.load(open('class_names.h5', 'rb'))
