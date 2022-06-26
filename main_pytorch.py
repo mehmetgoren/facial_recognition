@@ -9,7 +9,7 @@ from core.utilities import register_detect_service, start_thread, EventChannels
 
 def main():
     warnings.filterwarnings('ignore')
-    _ = register_detect_service('pytorch_detection_service', 'The PyTorch Facial Recognition Service®')
+    _ = register_detect_service('pytorch_facial_recognition_service', 'The PyTorch Facial Recognition Service®')
 
     def train_event_handler():
         logger.info('pytorch face training event handler will start soon')
