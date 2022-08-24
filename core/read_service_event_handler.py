@@ -40,6 +40,7 @@ class ReadServiceEventHandler(EventHandler):
 
         start_thread(self.__handle, [dic])
 
+    # you can handle it and add dict to multiprocessing.Queue then execute on a parameterless function by Pool.run_async to provide a real multi-core support
     def __handle(self, dic: dict):
         data: bytes = dic['data']
         dic = json.loads(data.decode(self.encoding))
