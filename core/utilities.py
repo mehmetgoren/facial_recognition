@@ -1,10 +1,7 @@
-import base64
 import os
 import uuid
 from enum import Enum
-from io import BytesIO
 from threading import Thread
-from PIL import Image
 
 from common.data.heartbeat_repository import HeartbeatRepository
 from common.data.service_repository import ServiceRepository
@@ -14,16 +11,6 @@ from common.utilities import crate_redis_connection, RedisDb, config
 def create_dir_if_not_exist(path: str):
     if not os.path.exists(path):
         os.makedirs(path)
-
-
-def base64_to_pil(base64_img: str):
-    return Image.open(BytesIO(base64.b64decode(base64_img)))
-
-
-def pil_to_base64(image):
-    buffered = BytesIO()
-    image.save(buffered, format="JPEG")
-    return base64.b64encode(buffered.getvalue()).decode('utf-8')
 
 
 def generate_id() -> str:
@@ -55,6 +42,7 @@ def get_test_dir_path() -> str:
 
 class EventChannels(str, Enum):
     read_service = 'read_service'
+    snapshot_out = 'snapshot_out'
     fr_train_request = 'fr_train_request'
     fr_service = 'fr_service'
     fr_train_response = 'fr_train_response'

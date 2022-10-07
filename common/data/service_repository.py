@@ -1,4 +1,3 @@
-from typing import List
 from redis import Redis
 
 from common.data.base_repository import BaseRepository
