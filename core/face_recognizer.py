@@ -26,7 +26,6 @@ class FaceRecognizer:
         self.facenet_pytorch = importlib.import_module('facenet-pytorch')
         self.mtcnn_threshold = config.ai.face_recog_mtcnn_threshold
         self.prob_threshold = config.ai.face_recog_prob_threshold
-        self.overlay = config.ai.overlay
 
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.mtcnn = self.facenet_pytorch.MTCNN(post_process=True, device=self.device)
