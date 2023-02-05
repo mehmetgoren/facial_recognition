@@ -1,4 +1,4 @@
 gokalpgoren
     amd64:
         docker build -t gokalpgoren/face_recognition_pytorch:v1.0.0-amd64 .
-        docker run -it --restart unless-stopped --name face_recognition_pytorch-instance --net host -e TZ=Europe/Istanbul --gpus all -e NVIDIA_DRIVER_CAPABILITIES=all gokalpgoren/face_recognition_pytorch:v1.0.0-amd64
+        docker run -it --restart unless-stopped --name face_recognition_pytorch-instance --net host -e TZ=Europe/Istanbul --gpus all -e NVIDIA_DRIVER_CAPABILITIES=all gokalpgoren/face_recognition_pytorch:v1.0.0-arm64v8
